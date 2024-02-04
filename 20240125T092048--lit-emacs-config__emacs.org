@@ -526,7 +526,7 @@ for users and are less likely to conflict with other bindings.
   (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
   (org-ai-global-mode) ; installs global keybindings on C-c M-a
   :config
-  (setq org-ai-openai-api-token "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")
+  (setq org-ai-openai-api-token "")
   ;; (setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
   ;; (org-ai-install-yasnippets) ; if you are using yasnippet and want `ai` snippets
   )
