@@ -1,0 +1,605 @@
+#+title:      lit_emacs_config
+#+date:       [2024-01-25 Thu 09:20]
+#+filetags:   :emacs:
+#+identifier: 20240125T092048
+#+STARTUP: content indent
+#+MACRO: latest-export-date (eval (format-time-string "%F %T %z"))
+#+OPTIONS: ^:{}
+
+* Introduction
+  This is my Emacs literate configuration. last modified on {{{latest-export-date}}}
+  The local variables section has an =eval= code that calls the function
+  =org-babel-tangle= which extracts the code into the files specified
+  either in the :properties: drawer or in the respective code
+  block(s). This is a convenient way to 'tangle' the code when this
+  literate org document is saved, without having to manually invoke,
+  C-c C-v C-t =org-babel-tangle=.
+** early-init.el
+:PROPERTIES:
+:HEADER-ARGS:emacs-lisp: :tangle ~/emacs_test/init.el
+:END:
+
+[[https://www.gnu.org/software/emacs/manual/html_node/emacs/Early-Init-File.html][The Early Init File]] 
+
+#+NAME: first-block
+#+begin_src emacs-lisp
+  ;; Automatically start Emacs server if not already running
+  ;; (require 'server)
+  ;; (unless (server-running-p)
+  ;;   (server-start))
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+  (blink-cursor-mode -1)
+  (setq fill-column 100)
+  ;; (load-theme 'modus-vivendi t)
+  (load-theme 'leuven-dark t)
+  ;; remember and restore the last cursor location of opened files
+  (save-place-mode 1)
+  ;; revert buffers when the underlying file has changed
+  (global-auto-revert-mode 1)
+  (setq global-auto-revert-non-file-buffers t) ;; revert Dired and other buffers
+  ;; recent files
+  (recentf-mode 1)
+  (setq recentf-max-menu-items 25)
+  (setq recentf-max-saved-items 25)
+  ;; save history minibuffer
+  (setq history-length 25)
+  (savehist-mode 1) ;; M-n M-p cycles through the history
+  ;; custom file 
+  (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+  (load custom-file 'noerror 'nomessage)
+#+end_src
+
+#+NAME: font and frame
+#+begin_src emacs-lisp
+    ;; NOTE: These settings might not be ideal for your machine, tweak them as needed!
+    ;; Set transparency of emacs
+    ;; https://www.emacswiki.org/emacs/TransparentEmacs
+    (defun transparency (value)
+      "Sets the transparency of the frame window. 0=transparent/100=opaque"
+      (interactive "nTransparency Value 0 - 100 opaque:")
+      (set-frame-parameter nil 'alpha value))
+  ;; This sets a transparent frame so that we can see the background. 
+    (set-frame-parameter nil 'alpha '90)
+  ;; start Emacs in fullscreen 
+    (add-to-list 'default-frame-alist '(fullscreen . maximized))
+  ;; Fonts 
+    (set-face-attribute 'default nil :family "Iosevka" :height 120)
+    (set-face-attribute 'variable-pitch nil :family "Iosevka Aile" :height 120)
+#+end_src
+** init.el
+:PROPERTIES:
+:HEADER-ARGS:emacs-lisp: :tangle ~/emacs_test/init.el
+:END:
+
+#+NAME: package
+#+begin_src emacs-lisp
+  (require 'package)
+  (package-initialize)
+  (unless package-archive-contents
+    (package-refresh-contents))
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+
+  ;; use-package------------------------------------------------------------------
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
+  (require 'use-package)
+  (setq use-package-always-ensure t)
+#+end_src
+
+The no-littering package in Emacs is designed to automatically
+organize and clean up various Emacs files, including backup and
+auto-save files. It does so by changing the default paths where these
+files are stored, moving them out of your primary configuration
+directory (typically ~/.emacs.d/) into more appropriate locations.
+#+NAME: housekeeping
+#+begin_src emacs-lisp
+  ;; (use-package no-littering)
+  ;; Optional: Additional backup settings
+  (setq backup-by-copying t      ; Don't clobber symlinks
+        delete-by-moving-to-trash t
+        delete-old-versions t
+        kept-new-versions 6
+        kept-old-versions 2
+        version-control t)       ; Use versioned backups
+
+  ;; (use-package auto-package-update
+  ;;   :config
+  ;;   (setq auto-package-update-interval 7)
+  ;;   (setq auto-package-update-prompt-before-update t)
+  ;;   (setq auto-package-update-hide-results t)
+  ;;   (setq auto-package-update-delete-old-versions t)
+  ;;   (auto-package-update-maybe))
+
+  ;; Garbage Collection Magic Hack Tweak gc threashold
+  (use-package gcmh
+    :config
+    (gcmh-mode 1))
+#+end_src
+
+#+NAME: dashboard
+#+begin_src emacs-lisp
+  ;;   (use-package dashboard
+  ;;     :config
+  ;;     (dashboard-setup-startup-hook)
+  ;;     (setq dashboard-startup-banner 'official)  ; Use the official Emacs logo as banner
+  ;;     (setq dashboard-items '((recents  . 5)     ; Show 5 recent files
+  ;;                             (bookmarks . 5)    ; Show 5 bookmarks
+  ;;                             (projects . 5)))   ; Show 5 projects
+  ;;     (setq dashboard-center-text t) ; Center the content
+  ;;     (setq dashboard-set-heading-icons t)
+  ;;     (setq dashboard-set-file-icons t)
+  ;;     )
+  ;; (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+  ;; use-package with package.el:
+  (use-package dashboard
+    :config
+    (dashboard-setup-startup-hook))
+#+end_src
+
+meow edit's defaults are in 'meow.el' file which is loaded by
+'init.el'. Goodbye Evil, [[https://esrh.me/posts/2021-12-18-switching-to-meow.html][Why meow?]]
+#+NAME: meow
+#+begin_src emacs-lisp
+  (load-file "~/emacs_test/meow.el")
+#+end_src
+
+#+NAME: custom keymaps
+#+begin_src emacs-lisp
+  (load-file "~/emacs_test/keybind.el")
+#+end_src
+
+#+NAME: ido
+#+begin_src emacs-lisp
+  (use-package ido
+    :config
+    (ido-mode t)
+    (ido-everywhere t)
+    (setq ido-enable-flex-matching t))
+#+end_src
+
+#+NAME: company
+#+begin_src emacs-lisp
+  (use-package company
+  :config
+  (setq
+   company-idle-delay 0.2
+   company-minimum-prefix-length 2
+   company-selection-wrap-around t)
+  (global-company-mode t))
+#+end_src
+
+#+NAME: orderless
+#+begin_src emacs-lisp
+(use-package orderless
+  :ensure t
+  :custom
+  (completion-styles '(orderless))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles . (partial-completion))))))
+#+end_src
+
+#+NAME: flyspell
+#+begin_src emacs-lisp
+  (use-package flyspell
+    :defer t
+    :init
+    ;; Automatically enable flyspell for text and markdown modes
+    (add-hook 'text-mode-hook 'flyspell-mode)
+    (add-hook 'markdown-mode-hook 'flyspell-mode)
+    ;; Optionally, for programming modes, enable flyspell for comments and strings
+    (add-hook 'prog-mode-hook 'flyspell-prog-mode)
+    :config
+    (setq ispell-dictionary "british"))
+#+end_src
+
+#+NAME: which-key
+#+begin_src emacs-lisp
+  (use-package which-key
+    :init
+    (which-key-mode)
+    :config
+    (setq which-key-idle-delay 0.5))
+#+end_src
+
+#+NAME: vertico & marginalia
+#+begin_src emacs-lisp
+  (use-package vertico
+    :init
+    (vertico-mode 1))
+
+  (use-package marginalia
+    :bind (
+           :map minibuffer-local-map
+                ("M-A" . marginalia-cycle))
+    :init
+    (marginalia-mode 1))
+#+end_src
+
+#+NAME: treemacs
+#+begin_src emacs-lisp
+; Treemacs - a tree layout file explorer
+(use-package treemacs
+  :defer t
+  :bind
+  (:map global-map
+        ("M-0" . treemacs-select-window)
+        ("C-x t 1" . treemacs-delete-other-windows)
+        ("C-x t t" . treemacs)
+        ("C-x t B" . treemacs-bookmark)
+        ("C-x t C-t" . treemacs-find-file)
+        ("C-x t M-t" . treemacs-find-tag))
+  :config
+  (setq treemacs-is-never-other-window t
+        treemacs-width 30))
+#+end_src
+
+#+NAME: vterm
+#+begin_src emacs-lisp
+  (use-package vterm)
+  (use-package multi-vterm)
+#+end_src
+
+#+NAME: dired
+#+begin_src emacs-lisp
+  (use-package dired
+    :ensure nil  ; dired is built-in and doesn't need to be installed
+    :commands (dired dired-jump) ; these are commands you'll use from dired
+    :hook (dired-mode . dired-hide-details-mode)
+    :config
+    ;; Your dired configuration goes here
+    (setq dired-listing-switches "-lvh"  ; human-readable sizes, -a to list all files
+          dired-dwim-target t))          ; guess a default target directory
+
+  (use-package dired-single
+    :after dired
+    :bind (:map dired-mode-map
+                ([remap dired-find-file] . dired-single-buffer)
+                ([remap dired-up-directory] . dired-single-up-directory)))
+
+  (use-package all-the-icons-dired
+    :hook (dired-mode . all-the-icons-dired-mode))
+#+end_src
+
+#+NAME: all-the-icons
+#+begin_src emacs-lisp
+  (use-package all-the-icons
+    :if (display-graphic-p)
+    :config
+    (unless (find-font (font-spec :name "all-the-icons"))
+      (all-the-icons-install-fonts t)))
+#+end_src
+
+#+NAME: rg
+#+begin_src emacs-lisp
+  (use-package rg
+    :config
+    (rg-enable-default-bindings))
+#+end_src
+
+#+NAME: pdf-tools
+#+begin_src emacs-lisp
+    (use-package pdf-tools
+      :mode ("\\.pdf\\'" . pdf-view-mode)
+      :config
+      (pdf-tools-install)
+      (setq-default pdf-view-display-size 'fit-width)
+      (setq pdf-view-continuous t
+            pdf-annot-activate-created-annotations t)
+      )
+#+end_src
+
+#+NAME: ace-window
+#+begin_src emacs-lisp
+(use-package ace-window
+  :bind ("M-o" . ace-window)
+  :config
+  (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
+#+end_src
+
+#+my-visual-fill-mode
+#+begin_src emacs-lisp
+  ;; Enable visual line numbers globally
+  (global-display-line-numbers-mode 1)
+  ;; Display column numbers in mode-line
+  (column-number-mode 1)
+
+  (defun my-visual-fill ()
+    (auto-fill-mode 1)
+    (set-fill-column 88)
+    )
+  (dolist (mode '(text-mode-hook
+                  org-mode-hook
+                  markdown-mode-hook))
+    (add-hook mode (lambda () (my-visual-fill))))
+  ;; (display-fill-column-indicator-mode)
+
+  (dolist (mode '(org-mode-hook
+                  vterm-mode-hook
+                  term-mode-hook
+                  shell-mode-hook
+                  treemacs-mode-hook
+                  eshell-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 0))))
+#+end_src
+
+#+NAME: abbrev mode
+#+begin_src emacs-lisp
+  (add-hook 'text-mode-hook 'abbrev-mode)
+#+end_src
+                                                                                    
+** custom keymaps
+this is based on a Acronym Mnemonic Strategy (at least that is what i
+think it is) for example to perform some action on a buffer first 'b'
+then 'k' to kill, or 'g' (go-to) to switch. 
+Using the C-c prefix followed by a letter is a common convention for
+user-defined keybindings, as these sequences are generally reserved
+for users and are less likely to conflict with other bindings.
+
+#+begin_src emacs-lisp :tangle ~/emacs_test/keybind.el
+  ;; b for buffer---------------------------------------------------------------------
+  (global-set-key (kbd "C-c b k") 'kill-buffer)
+  (global-set-key (kbd "C-c b l") 'list-buffers)
+  (global-set-key (kbd "C-c b g") 'switch-to-buffer)
+  ;; this is a custome function defined in 'custom_func.el'
+  ;;(global-set-key (kbd "C-c b K") 'kill-buffer-and-window) 
+
+  ;; d for dired---------------------------------------------------------------------
+  (global-set-key (kbd "C-c d j") 'ido-dired)
+  (global-set-key (kbd "C-c d h") 'dired-up-directory)
+  (global-set-key (kbd "C-c d H") 'dired-hide-dotfiles-mode)
+  (global-set-key (kbd "C-c h k") 'dired-do-kill-lines)
+
+  ;; f for file---------------------------------------------------------------------
+  (global-set-key (kbd "C-c f f") 'ido-find-file)
+  (global-set-key (kbd "C-c f s") 'save-buffer)
+  (global-set-key (kbd "C-c f r") 'recentf)
+
+  ;; o for open
+  (global-set-key (kbd "C-c o i t") 'org-toggle-inline-images)
+  (global-set-key (kbd "C-c o l t") 'org-toggle-link-display)
+
+  ;; q for quit---------------------------------------------------------------------
+  (global-set-key (kbd "C-c q q") 'save-buffers-kill-terminal)
+
+  ;; w for window---------------------------------------------------------------------
+  (global-set-key (kbd "C-c w w") 'ace-window)
+  (global-set-key (kbd "C-c w k") 'delete-window)
+  (global-set-key (kbd "C-c w 1") 'delete-other-windows)
+  (global-set-key (kbd "C-c w r") 'split-window-right)
+  (global-set-key (kbd "C-c w b") 'split-window-below)
+  (global-set-key (kbd "C-c w c") 'clone-indirect-buffer)
+
+  ;; Hyper key remap setting
+  (define-prefix-command 'my-hyper-key-map)
+  (global-set-key (kbd "C-c h") 'my-hyper-key-map)
+
+  (define-key my-hyper-key-map (kbd "k") 'dired-do-kill-lines)
+  ;; this is a custome function defined in 'custom_func.el'
+  ;;(define-key my-hyper-key-map (kbd "h") 'make-org-heading)
+
+  ;;key-chord--------------------------------------------------------------------
+  (use-package key-chord
+    :config
+    (key-chord-mode 1)
+    (key-chord-define-global "jk" 'meow-escape-or-normal-modal))
+#+end_src
+
+** meow.el
+#+begin_src emacs-lisp :tangle "~/emacs_test/meow.el"
+  (defun meow-setup ()
+    (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
+    (meow-motion-overwrite-define-key
+     '("j" . meow-next)
+     '("k" . meow-prev)
+     '("<escape>" . ignore))
+    (meow-leader-define-key
+     ;; SPC j/k will run the original command in MOTION state.
+     '("j" . "H-j")
+     '("k" . "H-k")
+     ;; Use SPC (0-9) for digit arguments.
+     '("1" . meow-digit-argument)
+     '("2" . meow-digit-argument)
+     '("3" . meow-digit-argument)
+     '("4" . meow-digit-argument)
+     '("5" . meow-digit-argument)
+     '("6" . meow-digit-argument)
+     '("7" . meow-digit-argument)
+     '("8" . meow-digit-argument)
+     '("9" . meow-digit-argument)
+     '("0" . meow-digit-argument)
+     '("/" . meow-keypad-describe-key)
+     '("?" . meow-cheatsheet))
+    (meow-normal-define-key
+     '("0" . meow-expand-0)
+     '("9" . meow-expand-9)
+     '("8" . meow-expand-8)
+     '("7" . meow-expand-7)
+     '("6" . meow-expand-6)
+     '("5" . meow-expand-5)
+     '("4" . meow-expand-4)
+     '("3" . meow-expand-3)
+     '("2" . meow-expand-2)
+     '("1" . meow-expand-1)
+     '("-" . negative-argument)
+     '(";" . meow-reverse)
+     '("," . meow-inner-of-thing)
+     '("." . meow-bounds-of-thing)
+     '("[" . meow-beginning-of-thing)
+     '("]" . meow-end-of-thing)
+     '("a" . meow-append)
+     '("A" . meow-open-below)
+     '("b" . meow-back-word)
+     '("B" . meow-back-symbol)
+     '("c" . meow-change)
+     '("d" . meow-delete)
+     '("D" . meow-backward-delete)
+     '("e" . meow-next-word)
+     '("E" . meow-next-symbol)
+     '("f" . meow-find)
+     '("g" . meow-cancel-selection)
+     '("G" . meow-grab)
+     '("h" . meow-left)
+     '("H" . meow-left-expand)
+     '("i" . meow-insert)
+     '("I" . meow-open-above)
+     '("j" . meow-next)
+     '("J" . meow-next-expand)
+     '("k" . meow-prev)
+     '("K" . meow-prev-expand)
+     '("l" . meow-right)
+     '("L" . meow-right-expand)
+     '("m" . meow-join)
+     '("n" . meow-search)
+     '("o" . meow-block)
+     '("O" . meow-to-block)
+     '("p" . meow-yank)
+     '("q" . meow-quit)
+     '("Q" . meow-goto-line)
+     '("r" . meow-replace)
+     '("R" . meow-swap-grab)
+     '("s" . meow-kill)
+     '("t" . meow-till)
+     '("u" . meow-undo)
+     '("U" . meow-undo-in-selection)
+     '("v" . meow-visit)
+     '("w" . meow-mark-word)
+     '("W" . meow-mark-symbol)
+     '("x" . meow-line)
+     '("X" . meow-goto-line)
+     '("y" . meow-save)
+     '("Y" . meow-sync-grab)
+     '("z" . meow-pop-selection)
+     '("'" . repeat)
+     '("<escape>" . ignore)))
+
+  (use-package meow
+    :config
+    (meow-setup)
+    (meow-global-mode 1))
+
+#+end_src
+
+** org.el
+:PROPERTIES:
+:HEADER-ARGS:emacs-lisp: :tangle ~/emacs_test/init.el
+:END:
+#+begin_src emacs-lisp
+  (defun my/org-mode-setup ()
+    (variable-pitch-mode 1) ; Use variable-pitch fonts for the main text in org-mode
+    ;; Ensure certain parts of the org file use a fixed-pitch font
+    (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-code nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-verbatim nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-special-keyword nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-meta-line nil :inherit 'fixed-pitch)
+    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+    )
+  (add-hook 'org-mode-hook 'my/org-mode-setup)
+  ;; org-modern
+  (use-package org-modern
+    :after org
+    :config
+    (global-org-modern-mode))
+  ;; org-tempo
+  (require 'org-tempo)
+  ;; org-reveal-------------------------------------------------------------------
+  ;; (use-package ox-reveal
+  ;;   :config
+  ;;   (setq org-reveal-root "<Insert Reveal.js file path here>"))
+  ;; (require 'ox-reveal)
+#+end_src
+*** denote
+#+begin_src emacs-lisp
+  (use-package denote
+              :custom (denote-directory "~/org-roam/denote/")
+              :config (denote-rename-buffer-mode))
+#+end_src
+*** org-ai
+#+begin_src emacs-lisp
+  (use-package org-ai
+  :commands (org-ai-mode
+             org-ai-global-mode)
+  :init
+  (add-hook 'org-mode-hook #'org-ai-mode) ; enable org-ai in org-mode
+  (org-ai-global-mode) ; installs global keybindings on C-c M-a
+  :config
+  (setq org-ai-openai-api-token "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")
+  ;; (setq org-ai-default-chat-model "gpt-4") ; if you are on the gpt-4 beta:
+  ;; (org-ai-install-yasnippets) ; if you are using yasnippet and want `ai` snippets
+  )
+#+end_src
+** lsp-mode
+:PROPERTIES:
+:HEADER-ARGS:emacs-lisp: :tangle ~/emacs_test/init.el
+:END:
+#+NAME: lsp-mode
+#+begin_src emacs-lisp
+  (use-package lsp-mode
+    :commands (lsp lsp-deferred)
+    :hook ((python-mode . lsp-deferred)   ; Replace `python-mode` with the mode of the language you use
+           (rust-mode . lsp-deferred)      ; Add more lines like this for other languages
+           (lsp-mode . lsp-enable-which-key-integration))
+    ;; :init
+    ;; (setq lsp-keymap-prefix "C-c l")  ; Set your lsp-mode keymap prefix
+    :config
+    (setq lsp-enable-file-watchers nil
+          lsp-enable-symbol-highlighting nil
+          lsp-log-io nil
+          lsp-prefer-capf t  ; Use capf as the completion provider
+          ;; lsp-enable-snippet nil
+          lsp-prefer-flymake nil  ; Use flycheck instead of flymake
+          lsp-idle-delay 0.500)
+    (lsp-enable-which-key-integration t))
+
+  (use-package lsp-ui
+    :commands lsp-ui-mode
+    :after lsp-mode
+    :hook (lsp-mode . lsp-ui-mode)
+    :config
+    (setq lsp-ui-doc-enable t
+          lsp-ui-doc-position 'bottom
+          lsp-ui-sideline-enable t
+          lsp-ui-sideline-show-hover t
+          lsp-ui-sideline-show-diagnostics t))
+
+  (use-package lsp-treemacs
+    :after lsp-mode
+    :config
+    (lsp-treemacs-sync-mode 1))
+
+  (use-package flycheck
+    :init (global-flycheck-mode)
+    )
+#+end_src
+*** tree-sitter
+#+begin_src emacs-lisp
+  (use-package tree-sitter
+    :config
+    (global-tree-sitter-mode)
+    (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+  (use-package tree-sitter-langs
+    :after tree-sitter
+    :config
+    (add-to-list 'tree-sitter-major-mode-language-alist '(python-mode . python))
+    (add-to-list 'tree-sitter-major-mode-language-alist '(js-mode . javascript))
+    (add-to-list 'tree-sitter-major-mode-language-alist '(html-mode . html))
+    (add-to-list 'tree-sitter-major-mode-language-alist '(css-mode . css))
+    (add-to-list 'tree-sitter-major-mode-language-alist '(tcl-mode . tcl))
+    ;;add more languages as needed
+    )
+#+end_src
+*** magit
+#+begin_src emacs-lisp
+  (use-package magit
+  :commands magit-status
+  :config
+  ;; Optional: Set global key binding for accessing Magit Status
+  (global-set-key (kbd "C-x g") 'magit-status))
+#+end_src
+* local variables
+# Local Variables:
+# eval: (add-hook 'after-save-hook (lambda () (org-babel-tangle)) nil t)
+# End:
