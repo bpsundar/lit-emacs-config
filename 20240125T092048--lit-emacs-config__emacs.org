@@ -4,7 +4,6 @@
 #+identifier: 20240125T092048
 #+STARTUP: content indent
 #+MACRO: latest-export-date (eval (format-time-string "%F %T %z"))
-#+OPTIONS: ^:{}
 
 * Introduction
   This is my Emacs literate configuration. last modified on {{{latest-export-date}}}
@@ -16,7 +15,7 @@
   C-c C-v C-t =org-babel-tangle=.
 ** early-init.el
 :PROPERTIES:
-:HEADER-ARGS:emacs-lisp: :tangle ~/emacs_test/init.el
+:HEADER-ARGS:emacs-lisp: :tangle ~/emacs_test/early-init.el
 :END:
 
 [[https://www.gnu.org/software/emacs/manual/html_node/emacs/Early-Init-File.html][The Early Init File]] 
@@ -387,7 +386,7 @@ for users and are less likely to conflict with other bindings.
 #+end_src
 
 ** meow.el
-#+begin_src emacs-lisp :tangle "~/emacs_test/meow.el"
+#+begin_src emacs-lisp :tangle ~/emacs_test/meow.el
   (defun meow-setup ()
     (setq meow-cheatsheet-layout meow-cheatsheet-layout-qwerty)
     (meow-motion-overwrite-define-key
@@ -486,37 +485,42 @@ for users and are less likely to conflict with other bindings.
 :HEADER-ARGS:emacs-lisp: :tangle ~/emacs_test/init.el
 :END:
 #+begin_src emacs-lisp
-  (defun my/org-mode-setup ()
-    (variable-pitch-mode 1) ; Use variable-pitch fonts for the main text in org-mode
-    ;; Ensure certain parts of the org file use a fixed-pitch font
-    (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-code nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-verbatim nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-special-keyword nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-meta-line nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
-    )
-  (add-hook 'org-mode-hook 'my/org-mode-setup)
-  ;; org-modern
-  (use-package org-modern
-    :after org
-    :config
-    (global-org-modern-mode))
-  ;; org-tempo
-  (require 'org-tempo)
-  ;; org-reveal-------------------------------------------------------------------
-  ;; (use-package ox-reveal
-  ;;   :config
-  ;;   (setq org-reveal-root "<Insert Reveal.js file path here>"))
-  ;; (require 'ox-reveal)
+    (defun my/org-mode-setup ()
+      (variable-pitch-mode 1) ; Use variable-pitch fonts for the main text in org-mode
+      ;; Ensure certain parts of the org file use a fixed-pitch font
+      (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+      (set-face-attribute 'org-code nil :inherit 'fixed-pitch)
+      (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+      (set-face-attribute 'org-verbatim nil :inherit 'fixed-pitch)
+      (set-face-attribute 'org-special-keyword nil :inherit 'fixed-pitch)
+      (set-face-attribute 'org-meta-line nil :inherit 'fixed-pitch)
+      (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch)
+      )
+    (add-hook 'org-mode-hook 'my/org-mode-setup)
+    ;; org-modern
+    (use-package org-modern
+      :after org
+      :config
+      (global-org-modern-mode)
+      (org-indent-mode))
+    ;; org-tempo
+    (require 'org-tempo)
+    ;; org-reveal-------------------------------------------------------------------
+    ;; (use-package ox-reveal
+    ;;   :config
+    ;;   (setq org-reveal-root "<Insert Reveal.js file path here>"))
+    ;; (require 'ox-reveal)
 #+end_src
 *** denote
 #+begin_src emacs-lisp
   (use-package denote
-              :custom (denote-directory "~/org-roam/denote/")
-              :config (denote-rename-buffer-mode))
-#+end_src
+    :custom
+    (denote-directory "~/org-roam/denote/")
+    :config
+    (setq denote-dired-directories (list denote-directory))
+    (denote-rename-buffer-mode)
+    (add-hook 'dired-mode-hook 'denote-dired-mode-in-directories))
+ #+end_src
 *** org-ai
 #+begin_src emacs-lisp
   (use-package org-ai
@@ -598,6 +602,13 @@ for users and are less likely to conflict with other bindings.
   :config
   ;; Optional: Set global key binding for accessing Magit Status
   (global-set-key (kbd "C-x g") 'magit-status))
+#+end_src
+*** projectile
+#+begin_src emacs-lisp
+    (use-package projectile
+    :config (projectile-mode)
+    :bind-keymap
+    ("C-c p" . projectile-command-map))
 #+end_src
 * local variables
 # Local Variables:
