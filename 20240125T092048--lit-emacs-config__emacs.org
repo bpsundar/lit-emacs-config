@@ -23,9 +23,9 @@
 #+NAME: first-block
 #+begin_src emacs-lisp
   ;; Automatically start Emacs server if not already running
-  ;; (require 'server)
-  ;; (unless (server-running-p)
-  ;;   (server-start))
+  (require 'server)
+  (unless (server-running-p)
+    (server-start))
   (menu-bar-mode -1)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
@@ -87,14 +87,14 @@
   (setq use-package-always-ensure t)
 #+end_src
 
+#+NAME: housekeeping
 The no-littering package in Emacs is designed to automatically
 organize and clean up various Emacs files, including backup and
 auto-save files. It does so by changing the default paths where these
 files are stored, moving them out of your primary configuration
 directory (typically ~/.emacs.d/) into more appropriate locations.
-#+NAME: housekeeping
 #+begin_src emacs-lisp
-  ;; (use-package no-littering)
+  (use-package no-littering)
   ;; Optional: Additional backup settings
   (setq backup-by-copying t      ; Don't clobber symlinks
         delete-by-moving-to-trash t
@@ -103,13 +103,13 @@ directory (typically ~/.emacs.d/) into more appropriate locations.
         kept-old-versions 2
         version-control t)       ; Use versioned backups
 
-  ;; (use-package auto-package-update
-  ;;   :config
-  ;;   (setq auto-package-update-interval 7)
-  ;;   (setq auto-package-update-prompt-before-update t)
-  ;;   (setq auto-package-update-hide-results t)
-  ;;   (setq auto-package-update-delete-old-versions t)
-  ;;   (auto-package-update-maybe))
+  (use-package auto-package-update
+    :config
+    (setq auto-package-update-interval 7)
+    (setq auto-package-update-prompt-before-update t)
+    (setq auto-package-update-hide-results t)
+    (setq auto-package-update-delete-old-versions t)
+    (auto-package-update-maybe))
 
   ;; Garbage Collection Magic Hack Tweak gc threashold
   (use-package gcmh
@@ -119,27 +119,27 @@ directory (typically ~/.emacs.d/) into more appropriate locations.
 
 #+NAME: dashboard
 #+begin_src emacs-lisp
-  ;;   (use-package dashboard
-  ;;     :config
-  ;;     (dashboard-setup-startup-hook)
-  ;;     (setq dashboard-startup-banner 'official)  ; Use the official Emacs logo as banner
-  ;;     (setq dashboard-items '((recents  . 5)     ; Show 5 recent files
-  ;;                             (bookmarks . 5)    ; Show 5 bookmarks
-  ;;                             (projects . 5)))   ; Show 5 projects
-  ;;     (setq dashboard-center-text t) ; Center the content
-  ;;     (setq dashboard-set-heading-icons t)
-  ;;     (setq dashboard-set-file-icons t)
-  ;;     )
-  ;; (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+    (use-package dashboard
+      :config
+      (dashboard-setup-startup-hook)
+      (setq dashboard-startup-banner 'official)  ; Use the official Emacs logo as banner
+      (setq dashboard-items '((recents  . 5)     ; Show 5 recent files
+                              (bookmarks . 5)    ; Show 5 bookmarks
+                              (projects . 5)))   ; Show 5 projects
+      (setq dashboard-center-text t) ; Center the content
+      (setq dashboard-set-heading-icons t)
+      (setq dashboard-set-file-icons t)
+      )
+  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
   ;; use-package with package.el:
-  (use-package dashboard
-    :config
-    (dashboard-setup-startup-hook))
+  ;; (use-package dashboard
+  ;;   :config
+  ;;   (dashboard-setup-startup-hook))
 #+end_src
 
+#+NAME: meow
 meow edit's defaults are in 'meow.el' file which is loaded by
 'init.el'. Goodbye Evil, [[https://esrh.me/posts/2021-12-18-switching-to-meow.html][Why meow?]]
-#+NAME: meow
 #+begin_src emacs-lisp
   (load-file "~/emacs_test/meow.el")
 #+end_src
@@ -202,7 +202,7 @@ meow edit's defaults are in 'meow.el' file which is loaded by
     (setq which-key-idle-delay 0.5))
 #+end_src
 
-#+NAME: vertico & marginalia
+#+NAME: vertico, marginalia & consult
 #+begin_src emacs-lisp
   (use-package vertico
     :init
@@ -211,9 +211,14 @@ meow edit's defaults are in 'meow.el' file which is loaded by
   (use-package marginalia
     :bind (
            :map minibuffer-local-map
-                ("M-A" . marginalia-cycle))
+           ("M-A" . marginalia-cycle))
     :init
     (marginalia-mode 1))
+
+  (use-package consult
+    :bind
+    ("M-s M-b" . consult-buffer)
+    )
 #+end_src
 
 #+NAME: treemacs
@@ -297,7 +302,7 @@ meow edit's defaults are in 'meow.el' file which is loaded by
   (setq aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l)))
 #+end_src
 
-#+my-visual-fill-mode
+#+Name: my-visual-fill-mode
 #+begin_src emacs-lisp
   ;; Enable visual line numbers globally
   (global-display-line-numbers-mode 1)
@@ -327,7 +332,33 @@ meow edit's defaults are in 'meow.el' file which is loaded by
 #+begin_src emacs-lisp
   (add-hook 'text-mode-hook 'abbrev-mode)
 #+end_src
-                                                                                    
+
+#+Name: outli
+#+begin_src emacs-lisp
+(use-package outli
+  :load-path "~/.emacs.d/config/outli"
+  :hook ((prog-mode text-mode) . outli-mode))
+#+end_src
+
+#+Name: perspective mode
+#+begin_src emacs-lisp
+  ;; perspective
+(use-package perspective
+  :bind
+  ("C-x C-b" . persp-list-buffers)         ; or use a nicer switcher, see below
+  :custom
+  (persp-mode-prefix-key (kbd "C-c M-p"))  ; pick your own prefix key here
+  :init
+  (persp-mode))  
+#+end_src
+
+#+Name: focus mode
+#+begin_src emacs-lisp
+  ;; focus
+(use-package focus
+  :hook (tcl-mode . paragraph))
+#+end_src
+
 ** custom keymaps
 this is based on a Acronym Mnemonic Strategy (at least that is what i
 think it is) for example to perform some action on a buffer first 'b'
