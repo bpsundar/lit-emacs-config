@@ -75,10 +75,11 @@
 #+NAME: package
 #+begin_src emacs-lisp
   (require 'package)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
   (package-initialize)
   (unless package-archive-contents
     (package-refresh-contents))
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+  
 
   ;; use-package------------------------------------------------------------------
   (unless (package-installed-p 'use-package)
@@ -141,12 +142,12 @@ directory (typically ~/.emacs.d/) into more appropriate locations.
 meow edit's defaults are in 'meow.el' file which is loaded by
 'init.el'. Goodbye Evil, [[https://esrh.me/posts/2021-12-18-switching-to-meow.html][Why meow?]]
 #+begin_src emacs-lisp
-  (load-file "~/emacs_test/meow.el")
+  (load-file "~/.emacs.d/meow.el")
 #+end_src
 
 #+NAME: custom keymaps
 #+begin_src emacs-lisp
-  (load-file "~/emacs_test/keybind.el")
+  (load-file "~/.emacs.d/keybind.el")
 #+end_src
 
 #+NAME: ido
